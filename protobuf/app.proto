@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package app;
+
+service App {
+    rpc Start(stream ClientMessage) returns (stream ServerMessage) {}
+}
+
+message ClientMessage {
+    oneof data {
+        LoginRequest login_request = 1;
+        JoinRequest join_request = 2;
+        LeaveRequest leave_request = 3;
+        SendMessage send_message = 4;
+    }
+}
+
+message ServerMessage {
+    oneof data {
+        LoginResponse login_response = 1;
+        JoinResponse join_response= 2;
+        JoinNotification join_notification = 3;
+        LeaveResponse leave_response = 4;
+        LeaveNotification leave_notification = 5;
+        MessageNotification message_notification = 6;
+    }
+}
+
+message LoginRequest {
+    string player_id = 1;
+    oneof AuthConfig {
+        AuthConfigBearer bearer = 2;
+    }
+}
+
+message LoginResponse {
+    Error error = 1;
+}
+
+message JoinRequest {
+    string room_id = 1;
+    RoomConfig room_config = 2;
+}
+
+message JoinResponse {
+    string room_id = 1;
+    repeated string current_players = 2;
+    RoomConfig room_config = 3;
+    Error error = 4;
+}
+
+message JoinNotification {
+    string room_id = 1;
+    string player_id = 2;
+}
+
+message LeaveRequest {
+    string room_id = 1;
+}
+
+message LeaveResponse {
+    string room_id = 1;
+    Error error = 2;
+}
+
+message LeaveNotification {
+    string room_id = 1;
+    string player_id = 2;
+}
+
+message SendMessage {
+    // 何も指定しなければBroadcast
+    repeated string target_ids = 1;
+    string room_id = 2;
+    bytes body = 3;
+}
+
+message MessageNotification {
+    string sender_id = 1;
+    string room_id = 2;
+    bytes body = 3;
+}
+
+message RoomConfig {
+    uint32 max_players = 1;
+}
+
+message AuthConfigBearer {
+    string token = 1;
+}
+
+message Error {
+    ErrorCode code = 1;
+    string message = 2;
+}
+
+enum ErrorCode {
+    NONE = 0;
+    INTERNAL_SERVER_ERROR = 1;
+    FAILED_PRECONDITION = 2;
+    UNAUTHORIZED = 3;
+    ALREADY_LOGGED_IN = 4;
+    ALREADY_JOINED_THE_ROOM = 5;
+    ROOM_IS_FULL = 6;
+    ROOM_NOT_FOUND = 7;
+    ROOM_CONFIG_DOES_NOT_MATCH = 8;
+}
