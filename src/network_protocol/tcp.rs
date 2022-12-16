@@ -141,7 +141,7 @@ async fn handle_rw_stream(
                             match message {
                                 Ok(message) => {
                                     // player_actorがDropしない限り失敗しないはず。
-                                    let _ = player_actor.send(message.clone());
+                                    let _ = player_actor.send(message);
                                 }
                                 Err(err) => {
                                     error!("Received invalid message. {:?}", err);
