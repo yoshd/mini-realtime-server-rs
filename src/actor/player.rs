@@ -62,9 +62,9 @@ impl Player {
                         // output_tx/rxがcloseしているのでレスポンスだけ返るということも無い。
                         for (_, room_tx) in joined_rooms.iter() {
                             let result = room_tx.send(InputEvent::Leave(
-                                InputLeaveEvent {
+                                Box::new(InputLeaveEvent {
                                     player_id: player.id.clone(),
-                                },
+                                }),
                             ));
 
                             // RoomがDropしている場合(プレイヤー数が0)。ここではハンドリングしない。
@@ -242,10 +242,10 @@ impl Player {
                         // room_tx.sendが失敗するのはRoomがDropした場合。
                         // タイミング次第でこのJoin前に別プレイヤーがLeaveしてRoomの人数が0になればあり得なくもない。
                         // ひとまひとまずこの場合はエラーを返す。
-                        let result = room_tx.send(InputEvent::Join(InputJoinEvent {
+                        let result = room_tx.send(InputEvent::Join(Box::new(InputJoinEvent {
                             player: player.clone(),
                             room_config,
-                        }));
+                        })));
 
                         if result.is_err() {
                             Self::try_to_send_output_message(
@@ -271,9 +271,10 @@ impl Player {
                         let room_tx = get_room_channel(&req.room_id).await;
                         match room_tx {
                             Some(room_tx) => {
-                                let result = room_tx.send(InputEvent::Leave(InputLeaveEvent {
-                                    player_id: player.id.clone(),
-                                }));
+                                let result =
+                                    room_tx.send(InputEvent::Leave(Box::new(InputLeaveEvent {
+                                        player_id: player.id.clone(),
+                                    })));
 
                                 // RoomがDropしていた場合。
                                 // プレイヤー切断タイミング次第ではエラーになることはあり得なくもなさそう。
@@ -303,11 +304,11 @@ impl Player {
                     }
                     protobuf::app::client_message::Data::SendMessage(send_message) => {
                         debug!("SendMessage: {:?}", send_message);
-                        let event = InputMessageEvent {
+                        let event = Box::new(InputMessageEvent {
                             sender_player_id: player.id.clone(),
                             target_ids: send_message.target_ids,
                             body: send_message.body.into(),
-                        };
+                        });
                         let room_tx = get_room_channel(&send_message.room_id).await;
                         match room_tx {
                             Some(room_tx) => {
@@ -353,8 +354,8 @@ impl Player {
                                                 data: Some(
                                                     protobuf::app::server_message::Data::JoinResponse(
                                                         protobuf::app::JoinResponse {
-                                                            room_id: ev.room_id,
-                                                            current_players: ev.room_player_ids,
+                                                            room_id: ev.room_id.clone(),
+                                                            current_players: ev.room_player_ids.clone(),
                                                             room_config: Some(protobuf::app::RoomConfig {
                                                                 max_players: ev.room_config.max_players,
                                                             }),
@@ -378,7 +379,7 @@ impl Player {
                                                 data: Some(
                                                     protobuf::app::server_message::Data::JoinResponse(
                                                         protobuf::app::JoinResponse {
-                                                            room_id: ev.room_id,
+                                                            room_id: ev.room_id.clone(),
                                                             current_players: Vec::new(),
                                                             room_config: None,
                                                             error: Some(protobuf::app::Error {
@@ -400,8 +401,8 @@ impl Player {
                                         data: Some(
                                             protobuf::app::server_message::Data::JoinNotification(
                                                 protobuf::app::JoinNotification {
-                                                    room_id: ev.room_id,
-                                                    player_id: ev.player_id,
+                                                    room_id: ev.room_id.clone(),
+                                                    player_id: ev.player_id.clone(),
                                                 },
                                             ),
                                         ),
@@ -466,7 +467,7 @@ impl Player {
                                 protobuf::app::ServerMessage {
                                     data: Some(protobuf::app::server_message::Data::LeaveResponse(
                                         protobuf::app::LeaveResponse {
-                                            room_id: ev.room_id,
+                                            room_id: ev.room_id.clone(),
                                             error: Some(protobuf::app::Error {
                                                 code: protobuf::app::ErrorCode::None as i32,
                                                 message: String::new(),
@@ -482,8 +483,8 @@ impl Player {
                                     data: Some(
                                         protobuf::app::server_message::Data::LeaveNotification(
                                             protobuf::app::LeaveNotification {
-                                                room_id: ev.room_id,
-                                                player_id: ev.player_id,
+                                                room_id: ev.room_id.clone(),
+                                                player_id: ev.player_id.clone(),
                                             },
                                         ),
                                     ),
@@ -500,9 +501,9 @@ impl Player {
                         protobuf::app::ServerMessage {
                             data: Some(protobuf::app::server_message::Data::MessageNotification(
                                 protobuf::app::MessageNotification {
-                                    sender_id: event.sender_player_id,
-                                    room_id: event.room_id,
-                                    body: event.body.into(),
+                                    sender_id: event.sender_player_id.clone(),
+                                    room_id: event.room_id.clone(),
+                                    body: event.body.clone().into(),
                                 },
                             )),
                         },

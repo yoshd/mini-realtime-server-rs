@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 use bytes::Bytes;
 
@@ -26,9 +26,9 @@ pub struct InputMessageEvent {
 
 #[derive(Clone, Debug)]
 pub enum InputEvent {
-    Join(InputJoinEvent),
-    Leave(InputLeaveEvent),
-    Message(InputMessageEvent),
+    Join(Box<InputJoinEvent>),
+    Leave(Box<InputLeaveEvent>),
+    Message(Box<InputMessageEvent>),
 }
 
 #[derive(Clone, Debug)]
@@ -54,7 +54,7 @@ pub struct OutputMessageEvent {
 
 #[derive(Clone, Debug)]
 pub enum OutputEvent {
-    Join(Result<OutputJoinEvent>),
-    Leave(Result<OutputLeaveEvent>),
-    Message(OutputMessageEvent),
+    Join(Result<Arc<OutputJoinEvent>>),
+    Leave(Result<Arc<OutputLeaveEvent>>),
+    Message(Arc<OutputMessageEvent>),
 }
