@@ -16,5 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Install protoc
+      run: |
+        # TODO: cache
+        wget https://github.com/protocolbuffers/protobuf/releases/download/v21.5/protoc-21.5-linux-x86_64.zip
+        unzip protoc-21.5-linux-x86_64.zip
+        sudo mv ./bin/protoc /usr/local/bin/
+        rm -rf protoc-21.5-linux-x86_64.zip include readme.txt
     - name: Run tests
       run: cargo test --verbose
