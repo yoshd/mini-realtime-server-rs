@@ -13,12 +13,13 @@ use crate::actor;
 use crate::config;
 use crate::protobuf;
 
-pub struct GrpcServer {
+// TODO: grpc::GrpcServerってなってるので治す。
+pub struct ServerImpl {
     config: Arc<config::Config>,
 }
 
 #[tonic::async_trait]
-impl server::Server for GrpcServer {
+impl server::Server for ServerImpl {
     async fn run<A, F>(addr: A, config: Arc<config::Config>, shutdown: F) -> anyhow::Result<()>
     where
         A: ToSocketAddrs + Send + 'static,
@@ -48,7 +49,7 @@ impl server::Server for GrpcServer {
 }
 
 #[tonic::async_trait]
-impl protobuf::app::app_server::App for GrpcServer {
+impl protobuf::app::app_server::App for ServerImpl {
     type StartStream =
         Pin<Box<dyn Stream<Item = Result<protobuf::app::ServerMessage, Status>> + Send>>;
     async fn start(

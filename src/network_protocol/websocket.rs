@@ -17,10 +17,10 @@ use crate::actor;
 use crate::config;
 use crate::protobuf;
 
-pub struct WebSocketServer {}
+pub struct ServerImpl {}
 
 #[async_trait]
-impl server::Server for WebSocketServer {
+impl server::Server for ServerImpl {
     async fn run<A, F>(addr: A, config: Arc<config::Config>, shutdown: F) -> anyhow::Result<()>
     where
         A: ToSocketAddrs + Send + 'static,

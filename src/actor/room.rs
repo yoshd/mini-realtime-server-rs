@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use log::{debug, warn};
 use once_cell::sync::Lazy;
@@ -87,29 +87,23 @@ impl Room {
         }
     }
 
-    fn handle_join_event(&mut self, mut event: InputJoinEvent) {
+    fn handle_join_event(&mut self, mut event: Box<InputJoinEvent>) {
         match self
             .room
             .add_player(event.player.clone(), &event.room_config)
         {
             Ok(_) => {
-                let output_event = OutputEvent::Join(
-                    Ok(OutputJoinEvent {
-                        room_id: self.room.id.clone(),
-                        player_id: event.player.id.clone(),
-                        room_player_ids: self.room.players.keys().cloned().collect(),
-                        room_config: self.room.config.clone(),
-                    }),
-                );
+                let output_event = OutputEvent::Join(Ok(Arc::new(OutputJoinEvent {
+                    room_id: self.room.id.clone(),
+                    player_id: event.player.id.clone(),
+                    room_player_ids: self.room.players.keys().cloned().collect(),
+                    room_config: self.room.config.clone(),
+                })));
 
                 self.room.broadcast(output_event);
             }
             Err(err) => {
-                if event
-                    .player
-                    .send(OutputEvent::Join(Err(err)))
-                    .is_err()
-                {
+                if event.player.send(OutputEvent::Join(Err(err))).is_err() {
                     // Joinに失敗かつプレイヤーが切断した場合なので特にハンドリングは不要。
                     warn!("Join failed and player disconnected");
                 }
@@ -117,14 +111,12 @@ impl Room {
         }
     }
 
-    fn handle_leave_event(&mut self, event: InputLeaveEvent) {
+    fn handle_leave_event(&mut self, event: Box<InputLeaveEvent>) {
         if self.room.is_joined(&event.player_id) {
-            let output_event = OutputEvent::Leave(
-                Ok(OutputLeaveEvent {
-                    room_id: self.room.id.clone(),
-                    player_id: event.player_id.clone(),
-                }),
-            );
+            let output_event = OutputEvent::Leave(Ok(Arc::new(OutputLeaveEvent {
+                room_id: self.room.id.clone(),
+                player_id: event.player_id.clone(),
+            })));
             self.room.broadcast(output_event);
             let ok = self.room.remove_player(&event.player_id);
             debug_assert!(ok);
@@ -135,12 +127,12 @@ impl Room {
         }
     }
 
-    fn handle_message_event(&mut self, event: InputMessageEvent) {
-        let output_event = OutputEvent::Message(OutputMessageEvent {
+    fn handle_message_event(&mut self, event: Box<InputMessageEvent>) {
+        let output_event = OutputEvent::Message(Arc::new(OutputMessageEvent {
             room_id: self.room.id.clone(),
             body: event.body,
             sender_player_id: event.sender_player_id,
-        });
+        }));
 
         if event.target_ids.is_empty() {
             self.room.broadcast(output_event);
