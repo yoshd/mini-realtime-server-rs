@@ -13,7 +13,6 @@ use crate::actor;
 use crate::config;
 use crate::protobuf;
 
-// TODO: grpc::GrpcServerってなってるので治す。
 pub struct ServerImpl {
     config: Arc<config::Config>,
 }
