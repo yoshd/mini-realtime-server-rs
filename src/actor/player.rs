@@ -50,9 +50,11 @@ impl Player {
                 HashMap::new();
             loop {
                 tokio::select! {
+                    // クライアントからサーバに対してのメッセージ
                     message = input_rx.recv() => {
                         Self::on_client_message(message, &output_tx, &player).await;
                     }
+                    // ルーム内からプレイヤーへのイベント通知
                     event = player_rx.recv() => {
                         Self::on_output_event(event, &output_tx, &player.id, &mut joined_rooms).await;
                     }
