@@ -1,3 +1,5 @@
+![test](https://github.com/yoshd/mini-realtime-server-rs/workflows/Test/badge.svg)
+
 # mini-realtime-server-rs
 
 This is a small real-time server implementation supporting multiple network protocols, written in Rust.
