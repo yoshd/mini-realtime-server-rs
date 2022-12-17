@@ -38,14 +38,14 @@ async fn main() {
     info!("Start server. address={:?}", args.address);
     match args.protocol.as_str() {
         "websocket" => {
-            server::run::<websocket::WebSocketServer, _, _>(addr, config, server::wait_signal())
+            server::run::<websocket::ServerImpl, _, _>(addr, config, server::wait_signal())
                 .await
                 .unwrap()
         }
-        "grpc" => server::run::<grpc::GrpcServer, _, _>(addr, config, server::wait_signal())
+        "grpc" => server::run::<grpc::ServerImpl, _, _>(addr, config, server::wait_signal())
             .await
             .unwrap(),
-        "tcp" => server::run::<tcp::TcpServer, _, _>(addr, config, server::wait_signal())
+        "tcp" => server::run::<tcp::ServerImpl, _, _>(addr, config, server::wait_signal())
             .await
             .unwrap(),
         _ => panic!("invalid protocol"),

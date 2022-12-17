@@ -76,7 +76,7 @@ impl Client for ClientImpl {
 
 fn run_server() {
     tokio::spawn(async move {
-        network_protocol::server::run::<network_protocol::websocket::WebSocketServer, _, _>(
+        network_protocol::server::run::<network_protocol::websocket::ServerImpl, _, _>(
             server_addr(),
             default_config(),
             network_protocol::server::wait_signal(),
